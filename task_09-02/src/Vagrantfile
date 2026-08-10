@@ -1,0 +1,104 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+ENV['VAGRANT_EXPERIMENTAL'] = 'disks'
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  # Common provisioning block for ALL machines (cache setup, hosts, agent installation)
+  config.vm.provision "shell", pty: true, inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    # Cache setup
+    mkdir -p /vagrant/apt_cache
+    echo 'Dir::Cache::archives "/vagrant/apt_cache/";' > /etc/apt/apt.conf.d/99-vagrant-cache
+
+    # /etc/hosts setup
+    printf "10.10.10.3 zabbix-server\n10.10.10.4 zabbix-agent1\n10.10.10.5 zabbix-agent2\n" >> /etc/hosts
+
+    echo "=== Installing common packages and Zabbix Agent ===" >&2
+    apt-get update
+    apt-get install -y wget gnupg2 ca-certificates apt-transport-https sudo
+
+    # Download Zabbix repo package to cache if not present, then install via apt
+    ZABBIX_DEB="zabbix-release_6.0-5+debian12_all.deb"
+    if [ ! -f "/vagrant/apt_cache/$ZABBIX_DEB" ]; then
+      wget -O "/vagrant/apt_cache/$ZABBIX_DEB" "https://repo.zabbix.com/zabbix/6.0/debian/pool/main/z/zabbix-release/$ZABBIX_DEB"
+    fi
+    apt-get install -y "/vagrant/apt_cache/$ZABBIX_DEB"
+
+    apt-get update
+    apt-get install -y zabbix-agent
+    
+    sed -i 's/Server=127.0.0.1/Server=zabbix-server/g' /etc/zabbix/zabbix_agentd.conf
+    sed -i 's/ServerActive=127.0.0.1/ServerActive=zabbix-server/g' /etc/zabbix/zabbix_agentd.conf
+    sed -i "s/Hostname=Zabbix server/Hostname=$(hostname)/g" /etc/zabbix/zabbix_agentd.conf
+
+    systemctl restart zabbix-agent
+    systemctl enable zabbix-agent
+
+    echo "=== Base setup and Zabbix Agent installation completed ===" >&2
+  SHELL
+
+  # Machine 1: Zabbix Server
+  config.vm.define "zabbix-server" do |server|
+    server.vm.hostname = "zabbix-server"
+    server.vm.network "private_network", ip: "10.10.10.3"
+    server.vm.disk :disk, size: "15GB", primary: true
+    server.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+      vb.cpus = 2
+    end
+    
+    # Additional provisioning only for the Server
+    server.vm.provision "shell", pty: true, inline: <<-SHELL
+      set -e
+      export DEBIAN_FRONTEND=noninteractive
+      
+      echo "=== Installing Zabbix Server packages ===" >&2
+      apt-get install -y postgresql apache2 php libapache2-mod-php php-pgsql php-mbstring php-gd php-xml php-bcmath php-ldap php-curl zabbix-server-pgsql zabbix-frontend-php zabbix-apache-conf zabbix-sql-scripts
+
+      echo "=== Setting locale ===" >&2
+      sudo localectl set-locale LANG=en_US.UTF-8
+      sudo systemctl restart apache2
+
+      echo "=== Database setup ===" >&2
+      sudo -u postgres psql -c "CREATE USER zabbix WITH PASSWORD '123456789';"
+      sudo -u postgres psql -c "CREATE DATABASE zabbix OWNER zabbix;"
+      zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u zabbix psql zabbix
+
+      echo "=== Zabbix Server config setup ===" >&2
+      sed -i 's/# DBPassword=/DBPassword=123456789/g' /etc/zabbix/zabbix_server.conf
+      
+      systemctl restart zabbix-server apache2
+      systemctl enable zabbix-server apache2
+
+      echo "=== Zabbix Server installation completed ===" >&2
+    SHELL
+  end
+
+  # Machine 2: Zabbix Agent 1
+  config.vm.define "zabbix-agent1" do |agent1|
+    agent1.vm.hostname = "zabbix-agent1"
+    agent1.vm.network "private_network", ip: "10.10.10.4"
+    agent1.vm.disk :disk, size: "10GB", primary: true
+    agent1.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+  end
+
+  # Machine 3: Zabbix Agent 2
+  config.vm.define "zabbix-agent2" do |agent2|
+    agent2.vm.hostname = "zabbix-agent2"
+    agent2.vm.network "private_network", ip: "10.10.10.5"
+    agent2.vm.disk :disk, size: "10GB", primary: true
+    agent2.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+  end
+
+end
