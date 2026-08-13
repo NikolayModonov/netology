@@ -1,0 +1,84 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    mkdir -p /vagrant/apt_cache
+    echo 'Dir::Cache::archives "/vagrant/apt_cache/";' > /etc/apt/apt.conf.d/99-vagrant-cache
+
+    printf "10.10.10.3 ivanovii-1\n10.10.10.4 ivanovii-2\n" >> /etc/hosts
+
+    apt-get update
+    apt-get install -y wget gnupg2 ca-certificates apt-transport-https sudo locales
+
+    # Locale setup
+    sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen
+    locale-gen
+    update-locale LANG=en_US.UTF-8
+
+    ZABBIX_DEB="zabbix-release_7.0-1+debian12_all.deb"
+    if [ ! -f "/vagrant/apt_cache/$ZABBIX_DEB" ]; then
+      wget -O "/vagrant/apt_cache/$ZABBIX_DEB" "https://repo.zabbix.com/zabbix/7.0/debian/pool/main/z/zabbix-release/$ZABBIX_DEB"
+    fi
+    apt-get install -y "/vagrant/apt_cache/$ZABBIX_DEB"
+
+    apt-get update
+    apt-get install -y zabbix-agent2
+    
+    sed -i 's/Server=127.0.0.1/Server=10.10.10.3/g' /etc/zabbix/zabbix_agent2.conf
+    sed -i 's/ServerActive=127.0.0.1/ServerActive=10.10.10.3/g' /etc/zabbix/zabbix_agent2.conf
+
+    systemctl restart zabbix-agent2
+    systemctl enable zabbix-agent2
+  SHELL
+
+  # Machine 1: Zabbix Server
+  config.vm.define "zabbix-server" do |server|
+    server.vm.hostname = "ivanovii-1"
+    server.vm.network "private_network", ip: "10.10.10.3"
+    server.vm.provider "virtualbox" do |vb|
+      vb.memory = "2048"
+      vb.cpus = 2
+    end
+    
+    server.vm.provision "shell", inline: <<-SHELL
+      set -e
+      export DEBIAN_FRONTEND=noninteractive
+      
+      apt-get install -y postgresql apache2 php libapache2-mod-php php-pgsql php-mbstring php-gd php-xml php-bcmath php-ldap php-curl zabbix-server-pgsql zabbix-frontend-php zabbix-apache-conf zabbix-sql-scripts
+
+      sudo -u postgres psql -c "DROP DATABASE IF EXISTS zabbix;"
+      sudo -u postgres psql -c "DROP USER IF EXISTS zabbix;"
+      sudo -u postgres psql -c "CREATE USER zabbix WITH PASSWORD '123456789';"
+      sudo -u postgres psql -c "CREATE DATABASE zabbix OWNER zabbix;"
+      zcat /usr/share/zabbix-sql-scripts/postgresql/server.sql.gz | sudo -u zabbix psql zabbix
+
+      sed -i 's/# DBPassword=/DBPassword=123456789/g' /etc/zabbix/zabbix_server.conf
+      sed -i "s/Hostname=Zabbix server/Hostname=ivanovii-1/g" /etc/zabbix/zabbix_agent2.conf
+      
+      systemctl restart zabbix-server zabbix-agent2 apache2
+      systemctl enable zabbix-server zabbix-agent2 apache2
+    SHELL
+  end
+
+  # Machine 2: Zabbix Agent
+  config.vm.define "zabbix-agent" do |agent|
+    agent.vm.hostname = "ivanovii-2"
+    agent.vm.network "private_network", ip: "10.10.10.4"
+    agent.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+    end
+    
+    agent.vm.provision "shell", inline: <<-SHELL
+      sed -i "s/Hostname=Zabbix server/Hostname=ivanovii-2/g" /etc/zabbix/zabbix_agent2.conf
+      systemctl restart zabbix-agent2
+    SHELL
+  end
+end
