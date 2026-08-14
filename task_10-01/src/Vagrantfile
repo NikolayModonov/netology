@@ -1,0 +1,153 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  # Подключение share только при необходимости (раскомментируй, если нужно передать файлы)
+  # config.vm.synced_folder "D:\\PRJ\\vagrant\\share", "/vagrant_share"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    echo "====== Setup APT Cache ======"
+    mkdir -p /vagrant/apt_cache
+    echo 'Dir::Cache::archives "/vagrant/apt_cache/";' > /etc/apt/apt.conf.d/99-vagrant-cache
+
+    echo "====== System Update ======"
+    apt-get update
+    apt-get install -y wget gnupg2 ca-certificates apt-transport-https sudo locales curl nano
+    apt-get upgrade -y
+
+    echo "====== Locale Setup ======"
+    sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen
+    locale-gen
+    update-locale LANG=en_US.UTF-8
+
+    echo "====== Install Software ======"
+    apt-get install -y python3 haproxy nginx
+
+    echo "====== Task 1: Python Servers ======"
+    mkdir -p /srv/server1 /srv/server2
+    echo "<h1>Server 1</h1>" > /srv/server1/index.html
+    echo "<h1>Server 2</h1>" > /srv/server2/index.html
+    
+    systemctl stop python_server1.service python_server2.service 2>/dev/null || true
+    systemctl reset-failed python_server1.service python_server2.service 2>/dev/null || true
+    
+    systemd-run --unit=python_server1 python3 -m http.server 8001 --directory /srv/server1
+    systemd-run --unit=python_server2 python3 -m http.server 8002 --directory /srv/server2
+
+    echo "====== Task 1: HAProxy Config ======"
+    systemctl stop nginx
+    systemctl disable nginx
+    cat <<EOF > /etc/haproxy/haproxy.cfg
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    daemon
+
+defaults
+    log     global
+    mode    tcp
+    option  tcplog
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+
+frontend http_front
+    bind *:80
+    default_backend python_servers
+
+backend python_servers
+    balance roundrobin
+    server server1 127.0.0.1:8001 check
+    server server2 127.0.0.1:8002 check
+EOF
+    echo "haproxy.cfg updated"
+    systemctl restart haproxy
+
+    echo "====== Software Versions ======"
+    echo "Python3: $(python3 --version)"
+    echo "HAProxy: $(haproxy -v | head -n 1)"
+    echo "Nginx: $(nginx -v 2>&1)"
+    
+    echo "====== Services Status ======"
+    echo "HAProxy service: $(systemctl is-active haproxy) / $(systemctl is-enabled haproxy)"
+    echo "Nginx service:   $(systemctl is-active nginx) / $(systemctl is-enabled nginx)"
+    
+    echo "====== Task 1: HAProxy Test ======"
+    curl http://127.0.0.1
+    curl http://127.0.0.1
+    curl http://127.0.0.1
+    curl http://127.0.0.1
+
+    echo "====== Task 2: Python Server 3 ======"
+    mkdir -p /srv/server3
+    echo "<h1>Server 3</h1>" > /srv/server3/index.html
+    systemctl stop python_server3.service 2>/dev/null || true
+    systemctl reset-failed python_server3.service 2>/dev/null || true
+    systemd-run --unit=python_server3 python3 -m http.server 8003 --directory /srv/server3
+
+    echo "====== Task 2: HAProxy Config (L7 WRR) ======"
+    cat <<EOF > /etc/haproxy/haproxy.cfg
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    daemon
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+
+frontend http_front
+    bind *:80
+    acl is_example_local hdr(host) -i example.local
+    use_backend python_servers_wrr if is_example_local
+    default_backend deny_backend
+
+backend python_servers_wrr
+    balance roundrobin
+    server server1 127.0.0.1:8001 check weight 2
+    server server2 127.0.0.1:8002 check weight 3
+    server server3 127.0.0.1:8003 check weight 4
+
+backend deny_backend
+    http-request deny
+EOF
+    echo "haproxy.cfg updated"
+    systemctl restart haproxy
+
+    echo "====== Task 2: HAProxy Test (example.local) ======"
+    echo "Test command: curl -s -H 'Host: example.local' http://127.0.0.1"
+    curl -s -H "Host: example.local" http://127.0.0.1
+    curl -s -H "Host: example.local" http://127.0.0.1
+    curl -s -H "Host: example.local" http://127.0.0.1
+    curl -s -H "Host: example.local" http://127.0.0.1
+    curl -s -H "Host: example.local" http://127.0.0.1
+    curl -s -H "Host: example.local" http://127.0.0.1
+    curl -s -H "Host: example.local" http://127.0.0.1
+    curl -s -H "Host: example.local" http://127.0.0.1
+    curl -s -H "Host: example.local" http://127.0.0.1
+    
+    echo "====== Task 2: HAProxy Test (no example.local) ======"
+    echo "Test command: curl -s -i http://127.0.0.1"
+    curl -s -i http://127.0.0.1
+  SHELL
+
+  config.vm.define "haproxy-node" do |node|
+    node.vm.hostname = "haproxy-node"
+    node.vm.network "private_network", ip: "10.10.10.10"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+      vb.name = "haproxy-node"
+    end
+  end
+end

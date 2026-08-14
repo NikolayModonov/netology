@@ -1,0 +1,27 @@
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    daemon
+
+defaults
+    log     global
+    mode    http
+    option  httplog
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+
+frontend http_front
+    bind *:80
+    acl is_example_local hdr(host) -i example.local
+    use_backend python_servers_wrr if is_example_local
+    default_backend deny_backend
+
+backend python_servers_wrr
+    balance roundrobin
+    server server1 127.0.0.1:8001 check weight 2
+    server server2 127.0.0.1:8002 check weight 3
+    server server3 127.0.0.1:8003 check weight 4
+
+backend deny_backend
+    http-request deny

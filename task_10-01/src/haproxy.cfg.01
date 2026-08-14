@@ -1,0 +1,21 @@
+global
+    log /dev/log    local0
+    log /dev/log    local1 notice
+    daemon
+
+defaults
+    log     global
+    mode    tcp
+    option  tcplog
+    timeout connect 5000
+    timeout client  50000
+    timeout server  50000
+
+frontend http_front
+    bind *:80
+    default_backend python_servers
+
+backend python_servers
+    balance roundrobin
+    server server1 127.0.0.1:8001 check
+    server server2 127.0.0.1:8002 check
