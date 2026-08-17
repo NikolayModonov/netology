@@ -1,0 +1,73 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    echo "====== Setup APT Cache ======"
+    mkdir -p /vagrant/apt_cache
+    echo 'Dir::Cache::archives "/vagrant/apt_cache/";' > /etc/apt/apt.conf.d/99-vagrant-cache
+
+    echo "====== System Update ======"
+    apt-get update
+    apt-get install -y wget gnupg2 ca-certificates apt-transport-https sudo locales curl nano rsyslog rsync cron
+
+    echo "====== Generate Locales ======"
+    sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen
+    locale-gen
+    update-locale LANG=en_US.UTF-8
+
+    echo "====== Create Test Files ======"
+    mkdir -p /home/vagrant/test_dir
+    echo "test file 1" > /home/vagrant/file1.txt
+    echo "test file 2" > /home/vagrant/file2.txt
+    echo "test dir file" > /home/vagrant/test_dir/file3.txt
+    chown -R vagrant:vagrant /home/vagrant/file1.txt /home/vagrant/file2.txt /home/vagrant/test_dir
+
+    echo "====== Task 1: Rsync Mirror Backup ======"
+    rsync -a -c --exclude='.*' /home/vagrant/ /tmp/backup/
+    echo "Результат выполнения rsync (содержимое /tmp/backup):"
+    ls -la /tmp/backup/
+
+    echo "====== Task 2: Cron Backup Script ======"
+    cat <<EOF > /usr/local/bin/backup.sh
+#!/bin/bash
+logger "Starting backup of /home/vagrant"
+rsync -a -c --exclude='.*' /home/vagrant/ /tmp/backup/
+if [ \$? -eq 0 ]; then
+    logger "Backup completed successfully"
+else
+    logger "Backup failed"
+fi
+EOF
+    chmod +x /usr/local/bin/backup.sh
+
+    echo "0 0 * * * root /usr/local/bin/backup.sh" > /etc/cron.d/backup_cron
+    chmod 644 /etc/cron.d/backup_cron
+    
+    echo "Содержимое cron (/etc/cron.d/backup_cron):"
+    cat /etc/cron.d/backup_cron
+
+    echo "====== Task 2: Test Script Run ======"
+    /usr/local/bin/backup.sh
+    sleep 1
+    echo "Записи в системном логе:"
+    grep "backup" /var/log/syslog | tail -n 5
+
+  SHELL
+
+  config.vm.define "backup-node" do |node|
+    node.vm.hostname = "backup-node"
+    node.vm.network "private_network", ip: "10.10.10.10"
+    node.vm.provider "virtualbox" do |vb|
+      vb.memory = "1024"
+      vb.cpus = 1
+      vb.name = "backup-node"
+    end
+  end
+end
