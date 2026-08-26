@@ -1,0 +1,62 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    echo "====== Setup APT Cache ======"
+    mkdir -p /vagrant/apt_cache
+    echo 'Dir::Cache::archives "/vagrant/apt_cache/";' > /etc/apt/apt.conf.d/99-vagrant-cache
+
+    echo "====== System Update ======"
+    apt-get update
+    apt-get install -y wget gnupg2 ca-certificates apt-transport-https sudo locales curl nano rsyslog memcached redis-server netcat-openbsd
+
+    echo "====== Generate Locales ======"
+    sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen
+    locale-gen
+    update-locale LANG=en_US.UTF-8
+
+    echo "====== Task 2: Memcached Status ======"
+    systemctl enable memcached
+    systemctl restart memcached
+    systemctl status memcached --no-pager | cat
+
+    echo "====== Task 3: Memcached Manual Test ======"
+    echo "Manually: telnet localhost 11211"
+    echo "Commands: add key1 0 5 6 ; value1 ; get key1"
+
+    echo "====== Task 4: Redis Test ======"
+    systemctl enable redis-server
+    systemctl restart redis-server
+    redis-cli SET mykey "Hello"
+    redis-cli SET anotherkey "World"
+    echo "Getting all keys:"
+    redis-cli KEYS '*'
+    echo "Getting values:"
+    redis-cli GET mykey
+    redis-cli GET anotherkey
+
+    echo "====== Task 5: Redis Int Test ======"
+    redis-cli SET key5 5
+    redis-cli INCRBY key5 5
+    echo "Getting value of key5:"
+    redis-cli GET key5
+  SHELL
+
+  config.vm.define "cache-node" do |node|
+    node.vm.hostname = "cache-node"
+    node.vm.network "private_network", ip: "10.10.10.10"
+    node.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.memory = 1024
+      vb.cpus = 1
+      vb.name = "cache-node"
+    end
+  end
+end
