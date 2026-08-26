@@ -24,7 +24,7 @@
 
 **Простыня SQL-запросов**
 
-+++sql
+```sql
 -- 1.2
 CREATE USER 'sys_temp'@'localhost' IDENTIFIED BY 'password';
 
@@ -46,7 +46,7 @@ ALTER USER 'sys_temp'@'localhost' IDENTIFIED WITH mysql_native_password BY 'pass
 -- 1.8
 USE sakila;
 SHOW TABLES;
-+++
+```
 
 ---
 
@@ -56,7 +56,7 @@ SHOW TABLES;
 
 **Таблица:**
 
-+++
+```sql
 Название таблицы | Название первичного ключа
 -----------------|--------------------------
 actor            | actor_id
@@ -75,7 +75,7 @@ payment          | payment_id
 rental           | rental_id
 staff            | staff_id
 store            | store_id
-+++
+```
 
 **Скриншот результата запроса на получение первичных ключей (дополнительно):**
 
@@ -83,10 +83,10 @@ store            | store_id
 
 **Использованный запрос:**
 
-+++sql
+```sql
 USE sakila;
 SELECT TABLE_NAME, COLUMN_NAME
 FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
 WHERE TABLE_SCHEMA = 'sakila' AND CONSTRAINT_NAME = 'PRIMARY'
 ORDER BY TABLE_NAME, ORDINAL_POSITION;
-+++
+```
