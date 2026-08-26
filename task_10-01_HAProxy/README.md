@@ -8,9 +8,9 @@
 
 Решение:
 1. Скриншот перенаправления запросов на разные серверы (Round-robin L4)
-![Перенаправление запросов Round-robin L4](https://github.com/NikolayModonov/netology/blob/main/task_10-01/img/10-01_01_round-robin-l4.jpg)
+![Перенаправление запросов Round-robin L4](img/10-01_01_round-robin-l4.jpg)
 2. Конфигурационный файл HAProxy
-[haproxy.cfg.01](https://github.com/NikolayModonov/netology/blob/main/task_10-01/src/haproxy.cfg.01)
+[haproxy.cfg.01](src/haproxy.cfg.01)
 3. Команды для запуска серверов и проверки балансировки
 
 ```bash
@@ -35,13 +35,13 @@ curl http://127.0.0.1
 
 Решение:
 1. Скриншот перенаправления запросов с использованием домена example.local (Weighted RR L7)
-![Weighted RR L7 example.local](https://github.com/NikolayModonov/netology/blob/main/task_10-01/img/10-01_02_weighted-rr-l7.jpg)
+![Weighted RR L7 example.local](img/10-01_02_weighted-rr-l7.jpg)
 2. Скриншот ответа при обращении без домена example.local (403 Forbidden)
-![403 Forbidden без example.local](https://github.com/NikolayModonov/netology/blob/main/task_10-01/img/10-01_03_access-control.jpg)
+![403 Forbidden без example.local](img/10-01_03_access-control.jpg)
 3. Конфигурационный файл HAProxy
-[haproxy.cfg](https://github.com/NikolayModonov/netology/blob/main/task_10-01/src/haproxy.cfg.02)
+[haproxy.cfg](src/haproxy.cfg.02)
 4. Файл Vagrant с автоматическим развертыванием инфраструктуры и прогоном тестов
-[Vagrantfile](https://github.com/NikolayModonov/netology/blob/main/task_10-01/src/Vagrantfile)
+[Vagrantfile](src/Vagrantfile)
 5. Команды для тестирования
 
 ```bash

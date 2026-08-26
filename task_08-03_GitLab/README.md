@@ -10,7 +10,7 @@
 В качестве ответа в репозиторий шаблона с решением добавьте скриншоты с настройками раннера в проекте.
 
 Решение:
-1. ![Скриншот с раннером](https://github.com/NikolayModonov/task_8-03/blob/main/runner.jpg)
+1. ![Скриншот с раннером](https://github.com/NikolayModonov/task_08-03_GitLab/blob/main/runner.jpg)
 2. Vagrantfile
 ```
 # -*- mode: ruby -*-
@@ -152,8 +152,8 @@ end
 
 
 Решение:
-1. ![Скриншот с пайплайном 1](https://github.com/NikolayModonov/task_8-03/blob/main/pipeline_1.jpg)
-2. ![Скриншот с пайплайном 1](https://github.com/NikolayModonov/task_8-03/blob/main/pipeline_2.jpg)
+1. ![Скриншот с пайплайном 1](https://github.com/NikolayModonov/task_08-03_GitLab/blob/main/pipeline_1.jpg)
+2. ![Скриншот с пайплайном 1](https://github.com/NikolayModonov/task_08-03_GitLab/blob/main/pipeline_2.jpg)
 3. Файл .gitlab-ci.yml
 
 ```
