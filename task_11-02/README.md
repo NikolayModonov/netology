@@ -10,9 +10,8 @@
 
 ### Задание 2. Memcached
 
-1. Скриншот статуса сервиса memcached
-
-![Memcached Status](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_02_memcached-status.jpg)
+1. Скриншот статуса сервиса memcached  
+![Memcached Status](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_02_memcached-status.jpg)  
 2. Проверка статуса
 ```bash
 systemctl status memcached --no-pager | cat
@@ -20,9 +19,8 @@ systemctl status memcached --no-pager | cat
 
 ### Задание 3. Удаление по TTL в Memcached
 
-1. Скриншот записи и удаления ключей по TTL
-
-![Memcached TTL](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_03_memcached-ttl.jpg)
+1. Скриншот записи и удаления ключей по TTL  
+![Memcached TTL](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_03_memcached-ttl.jpg)  
 2. Команды для тестирования TTL
 ```bash
 telnet localhost 11211
@@ -33,9 +31,8 @@ get key1
 
 ### Задание 4. Запись данных в Redis
 
-1. Скриншот записи и чтения ключей в Redis
-
-![Redis Test](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_04_redis-test.jpg)
+1. Скриншот записи и чтения ключей в Redis  
+![Redis Test](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_04_redis-test.jpg)  
 2. Команды Redis
 ```bash
 redis-cli SET mykey "Hello"
@@ -47,9 +44,8 @@ redis-cli GET anotherkey
 
 ### Задание 5. Работа с числами
 
-1. Скриншот увеличения значения ключа
-
-![Redis Int](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_05_redis-int.jpg)
+1. Скриншот увеличения значения ключа  
+![Redis Int](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_05_redis-int.jpg)  
 2. Команды Redis для работы с числами
 ```bash
 redis-cli SET key5 5
