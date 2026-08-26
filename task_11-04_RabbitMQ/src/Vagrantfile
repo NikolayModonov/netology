@@ -1,0 +1,173 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    echo "====== Setup APT Cache ======"
+    mkdir -p /vagrant/apt_cache
+    echo 'Dir::Cache::archives "/vagrant/apt_cache/";' > /etc/apt/apt.conf.d/99-vagrant-cache
+
+    echo "====== System Update ======"
+    apt-get update -qq
+    apt-get install -y -qq wget gnupg2 ca-certificates apt-transport-https sudo locales curl nano rsyslog netcat-openbsd
+    echo "Base packages installed"
+
+    echo "====== Generate Locales ======"
+    sed -i 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen
+    sed -i 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen
+    locale-gen >/dev/null 2>&1
+    update-locale LANG=en_US.UTF-8
+
+    echo "====== Install RabbitMQ ======"
+    apt-get install -y -qq erlang rabbitmq-server
+    echo "RabbitMQ installed"
+
+    echo "====== Enable Management Plugin ======"
+    rabbitmq-plugins enable rabbitmq_management >/dev/null 2>&1
+    echo "Management plugin enabled"
+
+    echo "====== Start RabbitMQ ======"
+    systemctl enable rabbitmq-server >/dev/null 2>&1
+    systemctl restart rabbitmq-server
+
+    echo "====== Install Python and Pika ======"
+    apt-get install -y -qq python3 python3-pika
+    echo "Python and Pika installed"
+
+    echo "====== Install rabbitmqadmin ======"
+    wget -q -O /usr/local/bin/rabbitmqadmin http://localhost:15672/cli/rabbitmqadmin
+    chmod +x /usr/local/bin/rabbitmqadmin
+    echo "rabbitmqadmin installed"
+
+    echo "====== Create producer.py and consumer.py (from task materials) ======"
+    cat > /vagrant/producer.py <<'PYTHON'
+#!/usr/bin/env python
+# coding=utf-8
+import pika
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+channel.queue_declare(queue='hello')
+channel.basic_publish(exchange='', routing_key='hello', body='Hello Netology!')
+connection.close()
+PYTHON
+
+    cat > /vagrant/consumer.py <<'PYTHON'
+#!/usr/bin/env python
+# coding=utf-8
+import pika
+
+connection = pika.BlockingConnection(pika.ConnectionParameters('localhost'))
+channel = connection.channel()
+channel.queue_declare(queue='hello')
+
+def callback(ch, method, properties, body):
+    print(" [x] Received %r" % body)
+
+channel.basic_consume(callback, queue='hello', no_ack=True)
+channel.start_consuming()
+PYTHON
+
+    chmod +x /vagrant/producer.py /vagrant/consumer.py
+    echo "Scripts created"
+  SHELL
+
+  config.vm.define "rmq01" do |node|
+    node.vm.hostname = "rmq01"
+    node.vm.network "private_network", ip: "10.10.10.11"
+    node.vm.network "forwarded_port", guest: 15672, host: 15672
+    node.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.memory = 1024
+      vb.cpus = 1
+      vb.name = "rmq01"
+    end
+
+    node.vm.provision "shell", inline: <<-SHELL
+      echo "10.10.10.11 rmq01" >> /etc/hosts
+      echo "10.10.10.12 rmq02" >> /etc/hosts
+
+      echo "====== Set RabbitMQ cookie ======"
+      systemctl stop rabbitmq-server >/dev/null 2>&1
+      echo "RABBITMQ_COOKIE=secret_cookie_value" > /etc/rabbitmq/rabbitmq-env.conf
+      echo "secret_cookie_value" > /var/lib/rabbitmq/.erlang.cookie
+      chown rabbitmq:rabbitmq /var/lib/rabbitmq/.erlang.cookie
+      chmod 400 /var/lib/rabbitmq/.erlang.cookie
+      echo "loopback_users = none" >> /etc/rabbitmq/rabbitmq.conf
+      sudo bash -c 'echo "management.listener.ip = 0.0.0.0" >> /etc/rabbitmq/rabbitmq.conf'
+      sudo bash -c 'echo "management.listener.port = 15672" >> /etc/rabbitmq/rabbitmq.conf'
+      echo "management.listener.ip = 0.0.0.0" >> /etc/rabbitmq/rabbitmq.conf
+      echo "management.listener.port = 15672" >> /etc/rabbitmq/rabbitmq.conf
+      systemctl start rabbitmq-server
+
+      echo "====== TASK 1: Web UI ======"
+      echo "Web UI: http://localhost:15672 (guest/guest)"
+    SHELL
+  end
+
+  config.vm.define "rmq02" do |node|
+    node.vm.hostname = "rmq02"
+    node.vm.network "private_network", ip: "10.10.10.12"
+    node.vm.provider "virtualbox" do |vb|
+      vb.gui = false
+      vb.memory = 1024
+      vb.cpus = 1
+      vb.name = "rmq02"
+    end
+
+    node.vm.provision "shell", inline: <<-SHELL
+      echo "10.10.10.11 rmq01" >> /etc/hosts
+      echo "10.10.10.12 rmq02" >> /etc/hosts
+
+      echo "====== Set RabbitMQ cookie ======"
+      systemctl stop rabbitmq-server >/dev/null 2>&1
+      echo "RABBITMQ_COOKIE=secret_cookie_value" > /etc/rabbitmq/rabbitmq-env.conf
+      echo "secret_cookie_value" > /var/lib/rabbitmq/.erlang.cookie
+      chown rabbitmq:rabbitmq /var/lib/rabbitmq/.erlang.cookie
+      chmod 400 /var/lib/rabbitmq/.erlang.cookie
+      systemctl start rabbitmq-server
+
+      echo "====== Join cluster ======"
+      rabbitmqctl stop_app >/dev/null 2>&1
+      rabbitmqctl join_cluster rabbit@rmq01 >/dev/null 2>&1
+      rabbitmqctl start_app >/dev/null 2>&1
+
+      echo "====== Create policy ha-all ======"
+      rabbitmqctl set_policy ha-all "^.*" '{"ha-mode":"all","ha-sync-mode":"automatic"}' >/dev/null 2>&1
+
+      echo "====== TASK 2: Producer/Consumer test ======"
+      cd /vagrant
+      echo "--- Run producer (sends 'Hello Netology!') ---"
+      python3 producer.py
+      echo "--- Run consumer (receives message) ---"
+      timeout 5 python3 consumer.py || true
+
+      echo "====== TASK 3: Cluster and policy ======"
+      echo "--- Cluster status ---"
+      rabbitmqctl cluster_status
+      echo "--- Policies ---"
+      rabbitmqctl list_policies
+      echo "--- rabbitmqadmin get queue='hello' ---"
+      rabbitmqadmin -H localhost get queue='hello'
+
+      echo "====== Simulate node failure (stop rmq01) ======"
+      rabbitmqctl -n rabbit@rmq01 stop_app >/dev/null 2>&1
+      echo "--- Cluster status after failure ---"
+      rabbitmqctl cluster_status
+
+      echo "====== Test again after failure (via rmq02) ======"
+      cd /vagrant
+      echo "--- Run producer again ---"
+      python3 producer.py
+      echo "--- Run consumer on rmq02 ---"
+      timeout 5 python3 consumer.py || true
+      echo "--- rabbitmqadmin get after failure ---"
+      rabbitmqadmin -H localhost get queue='hello'
+    SHELL
+  end
+end

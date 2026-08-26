@@ -12,7 +12,7 @@
 
 1. Скриншот статуса сервиса memcached
 
-![Memcached Status](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_02_memcached-status.jpg)
+![Memcached Status](img/11-02_02_memcached-status.jpg)
 
 2. Проверка статуса
 ```bash
@@ -23,7 +23,7 @@ systemctl status memcached --no-pager | cat
 
 1. Скриншот записи и удаления ключей по TTL
 
-![Memcached TTL](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_03_memcached-ttl.jpg)
+![Memcached TTL](img/11-02_03_memcached-ttl.jpg)
 
 2. Команды для тестирования TTL
 ```bash
@@ -37,7 +37,7 @@ get key1
 
 1. Скриншот записи и чтения ключей в Redis
 
-![Redis Test](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_04_redis-test.jpg)
+![Redis Test](img/11-02_04_redis-test.jpg)
 
 2. Команды Redis
 ```bash
@@ -52,7 +52,7 @@ redis-cli GET anotherkey
 
 1. Скриншот увеличения значения ключа
 
-![Redis Int](https://github.com/NikolayModonov/netology/blob/main/task_11-02/img/11-02_05_redis-int.jpg)
+![Redis Int](img/11-02_05_redis-int.jpg)
 
 2. Команды Redis для работы с числами
 ```bash

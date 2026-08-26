@@ -8,7 +8,7 @@
 
 Решение:
 1. Скриншот с командой rsync и результатом выполнения (содержимое /tmp/backup)
-![Rsync Mirror Backup](https://github.com/NikolayModonov/netology/blob/main/task_10-02/img/10-02_01_rsync-mirror-backup.jpg)
+![Rsync Mirror Backup](img/10-02_01_rsync-mirror-backup.jpg)
 2. Команда rsync
 ```bash
 rsync -a -c --exclude='.*' /home/vagrant/ /tmp/backup/
@@ -25,7 +25,7 @@ rsync -a -c --exclude='.*' /home/vagrant/ /tmp/backup/
 
 Решение:
 1. Скриншот файла crontab и записей в системном логе
-![Cron Backup and Logs](https://github.com/NikolayModonov/netology/blob/main/task_10-02/img/10-02_02_cron-and-logs.jpg)
+![Cron Backup and Logs](img/10-02_02_cron-and-logs.jpg)
 2. Скрипт резервного копирования /usr/local/bin/backup.sh
 ```bash
 #!/bin/bash
@@ -42,4 +42,4 @@ fi
 0 0 * * * root /usr/local/bin/backup.sh
 ```
 4. Vagrantfile с описанием инфраструктуры и тестовыми данными
-[Vagrantfile](https://github.com/NikolayModonov/netology/blob/main/task_10-02/src/Vagrantfile)
+[Vagrantfile](src/Vagrantfile)

@@ -16,9 +16,9 @@
 
 Решение:
 1. Скриншот страницы шаблона с элементами данных
-![Скриншот страницы шаблона с элементами данных](https://github.com/NikolayModonov/netology/blob/main/task_09-03/img/09-03_01_created-items.jpg)
+![Скриншот страницы шаблона с элементами данных](img/09-03_01_created-items.jpg)
 2. Vagrantfile с описанием инфраструктуры
-[Vagrantfile](https://github.com/NikolayModonov/netology/blob/main/task_09-03/src/Vagrantfile)
+[Vagrantfile](src/Vagrantfile)
 
 ---
 
@@ -58,7 +58,7 @@
 
 Решение:
 1. Скриншот страницы хостов с привязками шаблонов и зелёным статусом
-![Задание 2-3](https://github.com/NikolayModonov/netology/blob/main/task_09-03/img/09-03_02_created-hosts.jpg)
+![Задание 2-3](img/09-03_02_created-hosts.jpg)
 2. Код
 ```bash
 # Настройка Zabbix Agent в Vagrantfile:
@@ -84,4 +84,4 @@ sed -i "s/Hostname=Zabbix server/Hostname=ivanovii-1/g" /etc/zabbix/zabbix_agent
 
 Решение:
 1. Скриншот кастомного дашборда с графиками
-![Задание 4](https://github.com/NikolayModonov/netology/blob/main/task_09-03/img/09-03_03_dashboard-graph-added.jpg)
+![Задание 4](img/09-03_03_dashboard-graph-added.jpg)

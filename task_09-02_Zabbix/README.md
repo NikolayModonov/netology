@@ -15,7 +15,7 @@
 2. Приложите в файл README.md текст использованных команд в GitHub.
 
 Решение:
-1. ![Скриншот авторизации в админке](https://github.com/NikolayModonov/netology/blob/main/task_09-02/img/01_zabbix-welcome.jpg)
+1. ![Скриншот авторизации в админке](img/01_zabbix-welcome.jpg)
 2. В самом GitHub в данном задании практически не использовались команды. Команды консоли для задания 1:
 ```
 # Установка PostgreSQL
@@ -71,9 +71,9 @@ systemctl enable zabbix-server apache2 zabbix-agent
 
 
 Решение:
-1. ![скриншот раздела Configuration > Hosts](https://github.com/NikolayModonov/netology/blob/main/task_09-02/img/02_hosts_added.jpg)
-2. ![скриншот лога zabbix agent](https://github.com/NikolayModonov/netology/blob/main/task_09-02/img/03_zabbix-agent1_OK.jpg)
-3. ![скриншот раздела Monitoring > Latest data](https://github.com/NikolayModonov/netology/blob/main/task_09-02/img/04_zabbix-agent1_data.jpg)
+1. ![скриншот раздела Configuration > Hosts](img/02_hosts_added.jpg)
+2. ![скриншот лога zabbix agent](img/03_zabbix-agent1_OK.jpg)
+3. ![скриншот раздела Monitoring > Latest data](img/04_zabbix-agent1_data.jpg)
 4. Команды для задания 2:
 
 ```
