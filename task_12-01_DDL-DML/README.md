@@ -16,11 +16,11 @@
 
 1.7. Скачан и восстановлен дамп базы Sakila.
 
-![TASKS_1.1-1.7_SCREENSHOT](img/12-02_01_1-7_tasks.jpg)
+![TASKS_1.1-1.7_SCREENSHOT](img/12-01_01_1-7_tasks.jpg)
 
 1.8. Получен список таблиц базы Sakila (скриншот):
 
-![Sakila tables](img/12-02_01_8_tables.jpg)
+![Sakila tables](img/12-01_01_8_tables.jpg)
 
 **Простыня SQL-запросов**
 
@@ -79,7 +79,7 @@ store            | store_id
 
 **Скриншот результата запроса на получение первичных ключей (дополнительно):**
 
-![Primary keys](img/12-02_02_primary-keys.jpg)
+![Primary keys](img/12-01_02_primary-keys.jpg)
 
 **Использованный запрос:**
 
