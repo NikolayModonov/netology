@@ -22,4 +22,4 @@
 
 ---
 
-Все задания выполнены с использованием Vagrant (Debian 12). Парольные фразы: eCryptfs login – `pass`, LUKS – `lukspass`.
+Все задания выполнены с использованием Vagrant ([файл Vagrant](src/Vagrantfile)).
