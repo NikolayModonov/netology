@@ -1,0 +1,88 @@
+# -*- mode: ruby -*-
+# vi: set ft=ruby :
+
+Vagrant.configure("2") do |config|
+  config.vm.box = "debian/bookworm64"
+
+  config.vm.provision "shell", inline: <<-SHELL
+    set -e
+    export DEBIAN_FRONTEND=noninteractive
+
+    mkdir -p /vagrant/apt_cache
+    echo 'Dir::Cache::archives "/vagrant/apt_cache/";' > /etc/apt/apt.conf.d/99-vagrant-cache
+    apt-get update -qq > /dev/null
+
+    echo "==== Installing packages ===="
+    apt-get install -y -qq ecryptfs-utils cryptsetup expect > /dev/null
+    modprobe ecryptfs
+
+    echo "==== Cleanup and preparation ===="
+    umount /home/cryptouser/Private 2>/dev/null || true
+    id -u cryptouser &>/dev/null && userdel -r cryptouser 2>/dev/null || true
+    umount /mnt/luks_container 2>/dev/null || true
+    cryptsetup close luks_container 2>/dev/null || true
+    rm -f /root/luks_volume.img
+
+    useradd -m -s /bin/bash cryptouser
+    echo "cryptouser:pass" | chpasswd
+
+    echo "==== Task 1. Home dir before crypt ===="
+    sudo -u cryptouser touch /home/cryptouser/test.txt
+    ls -la /home/cryptouser
+
+    echo "==== Running ecryptfs-setup-private ===="
+    expect <<'EOF' || true
+set timeout 30
+spawn sudo -u cryptouser env HOME=/home/cryptouser USER=cryptouser LOGNAME=cryptouser ecryptfs-setup-private -u cryptouser
+expect {
+    "Enter your login passphrase" { send "pass\r"; exp_continue }
+    "Enter your mount passphrase" { send "\r"; exp_continue }
+    "proceed with the mount" { send "yes\r"; exp_continue }
+    eof
+}
+EOF
+
+    echo "==== Task 1. Home dir after crypt ===="
+    ls -la /home/cryptouser
+
+    echo "==== Task 1. Encrypted files in .Private ===="
+    ls -la /home/cryptouser/.Private
+
+    echo "==== Task 1. Extracting eCryptfs secrets ===="
+    expect <<'EOF' || true
+set timeout 10
+spawn sudo -u cryptouser env HOME=/home/cryptouser ecryptfs-unwrap-passphrase /home/cryptouser/.ecryptfs/wrapped-passphrase
+expect {
+    "Passphrase:" { send "pass\r"; exp_continue }
+    eof
+}
+EOF
+
+    echo "==== Task 2. LUKS setup ===="
+    LUKS_FILE="/root/luks_volume.img"
+    LUKS_PASS="lukspass"
+    echo "Creating 100MB file..."
+    dd if=/dev/zero of=$LUKS_FILE bs=1M count=100
+    echo "Formatting as LUKS (password: $LUKS_PASS)..."
+    echo -n "$LUKS_PASS" | cryptsetup luksFormat $LUKS_FILE --batch-mode -
+    echo "Opening LUKS container..."
+    echo -n "$LUKS_PASS" | cryptsetup open $LUKS_FILE luks_container --batch-mode -
+    echo "Creating ext4 filesystem..."
+    mkfs.ext4 /dev/mapper/luks_container
+    mkdir -p /mnt/luks_container
+    mount /dev/mapper/luks_container /mnt/luks_container
+
+    echo "==== Task 2. LUKS status ===="
+    cryptsetup status luks_container
+    echo ""
+    echo "==== Task 2. LUKS header dump (proof of encryption) ===="
+    cryptsetup luksDump $LUKS_FILE
+    echo ""
+    echo "==== Task 2. LUKS mounted ===="
+    df -h /mnt/luks_container
+
+    echo "==== All done ===="
+    echo "==== eCryptfs Login passphrase: pass ===="
+    echo "==== LUKS passphrase: lukspass ===="
+  SHELL
+end
