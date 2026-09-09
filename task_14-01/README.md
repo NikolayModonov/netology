@@ -1,3 +1,7 @@
 ﻿# Task 14-01
-ополнительная строка для теста
-The .gitignore file in the terraform directory ignores state files, crash logs, local .terraform directories, and *.tfvars variable files.
+Дополнительная строка для теста
+
+**Скриншоты:**
+
+![Git: коммит и push](img/14-01_01_git-commit-push.jpg)
+![Git: история коммитов](img/14-01_02_git-log.jpg)
