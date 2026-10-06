@@ -22,9 +22,14 @@
 
 Создан файл `compose.yaml` с директивой `include: proxy.yaml`. Описаны сервисы `web` (сборка из `Dockerfile.python`, IP 172.20.0.5) и `db` (`mysql:8`, IP 172.20.0.10) в сети `backend`. Переменные передаются через `.env` файл. Проект запущен локально. Команда `curl -L http://127.0.0.1:8090` возвращает время и IP-адрес. Выполнен SQL-запрос к БД.
 
+**Скриншоты:**
+
+![Task 3 Curl](img/15-02_task3_curl.jpg)
+![Task 3 SQL](img/15-02_task3_sql.jpg)
+
 **Содержимое `compose.yaml`:**
 
-```yaml
++++yaml
 include:
   - proxy.yaml
 
@@ -59,16 +64,11 @@ services:
 
 volumes:
   db_data:
-```
-
-**Скриншоты:**
-
-![Task 3 Curl](img/15-02_task3_curl.jpg)
-![Task 3 SQL](img/15-02_task3_sql.jpg)
++++
 
 ## Задача 4
 
-Создана ВМ в Yandex Cloud (2 vCPU 20%, 2 ГБ RAM, Debian 12). На ВМ установлен Docker. Написан bash-скрипт `deploy.sh`, который клонирует fork-репозиторий в `/opt` и запускает проект через `docker compose up -d --build`. Проведена успешная проверка доступности сервиса извне через сайт check-host.net. SQL-запрос повторен на сервере.
+Создана ВМ в Yandex Cloud (2 vCPU 20%, 2 ГБ RAM, Debian 12). На ВМ установлен Docker. Написан bash-скрипт `deploy.sh`, который клонирует fork-репозиторий в `/opt` и запускает проект через `docker compose up -d --build`. Проведена успешная проверка доступности сервиса извне через сайт `check-host.net`. SQL-запрос повторен на сервере.
 
 **Скриншоты:**
 
@@ -77,7 +77,7 @@ volumes:
 
 ## Задача 6
 
-Скачан образ `hashicorp/terraform:latest`. Для исследования слоёв использована утилита `dive`. Найден слой, содержащий файл `/bin/terraform`. Бинарный файл извлечён на локальную машину с помощью `docker save` и `tar`.
+Скачан образ `hashicorp/terraform:latest`. Для исследования слоев использована утилита `dive`. Найден слой, содержащий файл `/bin/terraform`. Бинарный файл извлечен на локальную машину с помощью `docker save` и `tar`.
 
 **Скриншоты:**
 
