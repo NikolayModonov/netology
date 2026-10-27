@@ -11,6 +11,7 @@ Terraform 1.17.0 запускается на Windows-хосте; Docker-демо
 ### 1.1. terraform init
 
 Установка провайдера kreuzwerker/docker:
+
 ![init + apply](img/16-01_task1_init_apply.jpg)
 
 ### 1.2. terraform apply
@@ -22,6 +23,7 @@ Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 ### 1.3. Пароль в tfstate
 
 Сгенерированный ресурс random_password хранится в terraform.tfstate в открытом виде:
+
 ![tfstate secret](img/16-01_task1_tfstate_secret.jpg)
 
 ### 1.4. Ошибки в исходном коде
@@ -34,7 +36,7 @@ Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 
 Исправленный код:
 
-+++hcl
+```hcl
 terraform {
   required_providers {
     docker = {
@@ -67,7 +69,7 @@ resource "docker_container" "nginx_container" {
     external = 9090
   }
 }
-+++
+```
 
 ## Задача 2. docker ps и переименование
 
@@ -79,11 +81,12 @@ resource "docker_container" "nginx_container" {
 
 В main.tf изменён атрибут name:
 
-+++hcl
+```hcl
   name  = "hello_world"
-+++
+```
 
 После apply:
+
 ![hello world](img/16-01_task2_hello_world.jpg)
 
 План apply показал 1 to add, 0 to change, 1 to destroy: Terraform не переименовал контейнер, а пересоздал его. Причина — атрибут name входит в идентичность ресурса docker_container, смена имени означает уничтожение старого контейнера и создание нового.
@@ -98,15 +101,16 @@ Destroy complete! Resources: 3 destroyed.
 
 Проверка в ВМ:
 
-+++text
+```text
 # docker ps -a
 CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 # docker images
 nginx:latest   f9ea18bfa4fa   243MB   66.7MB
-+++
+```
 
 Контейнер удалён; образ nginx:latest остался. Причина — keep_locally = true у ресурса docker_image: провайдер не удаляет образ из Docker при уничтожении ресурса.
 Документация: https://registry.terraform.io/providers/kreuzwerker/docker/docs/resources/image
 
 После destroy terraform.tfstate пуст:
+
 ![empty tfstate](img/16-01_task3_tfstate_empty.jpg)
