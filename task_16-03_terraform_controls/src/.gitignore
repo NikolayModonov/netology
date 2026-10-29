@@ -10,3 +10,9 @@
 
 # own secret vars store.
 personal.auto.tfvars
+
+# generated inventory
+hosts.ini
+
+# placeholders
+code
