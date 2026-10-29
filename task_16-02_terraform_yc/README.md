@@ -26,13 +26,13 @@ Apply complete! Resources: 5 added, 0 changed, 0 destroyed.
 
 Созданы: yandex_vpc_network.develop, yandex_vpc_subnet.develop, yandex_compute_instance.platform, служебные ресурсы провайдера.
 
-Скриншот: img/16-02_task1_apply.jpg
+![apply](img/16-02_task1_apply.jpg)
 
 ### 1.3. ВМ в консоли Yandex Cloud
 
 ID fhm1vp9phc0upcchohtu, имя netology-develop-platform-web, внешний IP 51.250.14.42, зона ru-central1-a.
 
-Скриншот: img/16-02_task1_vm_console.jpg
+![vm console](img/16-02_task1_vm_console.jpg)
 
 ### 1.4. SSH и curl ifconfig.me
 
@@ -43,7 +43,7 @@ ubuntu@fhm1vp9phc0upcchohtu:~$ curl ifconfig.me; echo
 
 Внешний IP совпадает с указанным в консоли YC.
 
-Скриншот: img/16-02_task1_curl.jpg
+![curl ifconfig.me](img/16-02_task1_curl.jpg)
 
 ### 1.5. preemptible и core_fraction
 
@@ -86,7 +86,7 @@ web_instance = {
 }
 ```
 
-Скриншот: img/16-02_task4_output.jpg
+![terraform output](img/16-02_task4_output.jpg)
 
 ## Задача 5. locals.tf
 
