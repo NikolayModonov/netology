@@ -20,26 +20,17 @@ Terraform 1.17.0 на Windows-хосте, провайдер yandex-cloud/yandex
 
 ### 1.2. terraform apply
 
-```text
-Apply complete! Resources: 5 added, 0 changed, 0 destroyed.
-```
-
-Созданы: yandex_vpc_network.develop, yandex_vpc_subnet.develop, yandex_compute_instance.platform, служебные ресурсы провайдера.
+Развернута инфраструктура
 
 ![apply](img/16-02_task1_apply.jpg)
 
 ### 1.3. ВМ в консоли Yandex Cloud
 
-ID fhm1vp9phc0upcchohtu, имя netology-develop-platform-web, внешний IP 51.250.14.42, зона ru-central1-a.
+Виртуальная машина создана
 
 ![vm console](img/16-02_task1_vm_console.jpg)
 
 ### 1.4. SSH и curl ifconfig.me
-
-```text
-ubuntu@fhm1vp9phc0upcchohtu:~$ curl ifconfig.me; echo
-51.250.14.42
-```
 
 Внешний IP совпадает с указанным в консоли YC.
 
@@ -70,21 +61,7 @@ Apply complete! Resources: 2 added, 0 changed, 1 destroyed.
 
 ## Задача 4. outputs.tf
 
-Объявлены два output — web_instance и db_instance, каждый содержит instance_name, external_ip, fqdn, все ссылками на ресурсы без хардкода.
-
-```text
-terraform output
-db_instance = {
-  "external_ip" = "178.154.248.103"
-  "fqdn" = "fv4eha7mihlafb0clgjf.auto.internal"
-  "instance_name" = "netology-develop-platform-db"
-}
-web_instance = {
-  "external_ip" = "51.250.14.42"
-  "fqdn" = "fhm1vp9phc0upcchohtu.auto.internal"
-  "instance_name" = "netology-develop-platform-web"
-}
-```
+Объявлены два output — web_instance и db_instance, каждый содержит instance_name, external_ip, fqdn, все ссылками на ресурсы без хардкода. Вывод подтверждает, что значения формируются из атрибутов ресурсов.
 
 ![terraform output](img/16-02_task4_output.jpg)
 
