@@ -8,25 +8,29 @@ Terraform 1.17.0 запускается на Windows-хосте; Docker-демо
 
 ## Задача 1. Init, apply, tfstate
 
-### 1.1. terraform init
+### terraform init
 
 Установка провайдера kreuzwerker/docker:
 
 ![init + apply](img/16-01_task1_init_apply.jpg)
 
-### 1.2. terraform apply
+### Секреты в .gitignore
+
+Согласно .gitignore в каталоге src, личную и секретную информацию (логины, пароли, ключи, токены) допустимо хранить в файле personal.auto.tfvars — он явно исключён из git строкой personal.auto.tfvars в .gitignore, при этом автоматически подхватывается Terraform при запуске (auto-переменные, загружаются без явного -var-file).
+
+### terraform apply
 
 ![apply](img/16-01_task1_apply.jpg)
 
 Apply complete! Resources: 2 added, 0 changed, 0 destroyed.
 
-### 1.3. Пароль в tfstate
+### Пароль в tfstate
 
 Сгенерированный ресурс random_password хранится в terraform.tfstate в открытом виде:
 
 ![tfstate secret](img/16-01_task1_tfstate_secret.jpg)
 
-### 1.4. Ошибки в исходном коде
+### Ошибки в исходном коде
 
 Три ошибки:
 
@@ -108,8 +112,15 @@ CONTAINER ID   IMAGE     COMMAND   CREATED   STATUS    PORTS     NAMES
 nginx:latest   f9ea18bfa4fa   243MB   66.7MB
 ```
 
-Контейнер удалён; образ nginx:latest остался. Причина — keep_locally = true у ресурса docker_image: провайдер не удаляет образ из Docker при уничтожении ресурса.
-Документация: https://registry.terraform.io/providers/kreuzwerker/docker/docs/resources/image
+Контейнер удалён; образ nginx:latest остался. Причина — атрибут keep_locally = true у ресурса docker_image: провайдер не удаляет образ из Docker при уничтожении ресурса.
+
+В документации провайдера docker (ресурс docker_image, атрибут keep_locally):
+
+```text
+keep_locally - If true, then the Docker image won't be deleted on destroy operation. If this is unset, it defaults to false.
+```
+
+Источник: https://registry.terraform.io/providers/kreuzwerker/docker/docs/resources/image
 
 После destroy terraform.tfstate пуст:
 
