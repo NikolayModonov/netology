@@ -21,54 +21,27 @@ variable "vm_web_image_family" {
 
 ###db vm
 
+variable "vm_db_name" {
+  type    = string
+  default = "netology-develop-platform-db"
+}
+
 variable "vm_db_platform_id" {
   type    = string
   default = "standard-v2"
 }
 
-# ###web resources
-#
-# variable "vm_web_cores" {
-#   type    = number
-#   default = 2
-# }
-#
-# variable "vm_web_memory" {
-#   type    = number
-#   default = 1
-# }
-#
-# variable "vm_web_core_fraction" {
-#   type    = number
-#   default = 5
-# }
-#
-# variable "vm_web_preemptible" {
-#   type    = bool
-#   default = true
-# }
-#
-# ###db resources
-#
-# variable "vm_db_cores" {
-#   type    = number
-#   default = 2
-# }
-#
-# variable "vm_db_memory" {
-#   type    = number
-#   default = 2
-# }
-#
-# variable "vm_db_core_fraction" {
-#   type    = number
-#   default = 20
-# }
-#
-# variable "vm_db_preemptible" {
-#   type    = bool
-#   default = true
-# }
+variable "vm_db_zone" {
+  type    = string
+  default = "ru-central1-d"
+}
+
+###db subnet
+
+variable "vm_db_subnet_cidr" {
+  type    = list(string)
+  default = ["10.0.2.0/24"]
+}
 
 ###maps
 
@@ -80,6 +53,7 @@ variable "vms_resources" {
     hdd_size      = number
     hdd_type      = string
     preemptible   = bool
+    nat           = bool
   }))
   default = {
     web = {
@@ -89,6 +63,7 @@ variable "vms_resources" {
       hdd_size      = 5
       hdd_type      = "network-hdd"
       preemptible   = true
+      nat           = true
     }
     db = {
       cores         = 2
@@ -97,6 +72,7 @@ variable "vms_resources" {
       hdd_size      = 5
       hdd_type      = "network-hdd"
       preemptible   = true
+      nat           = true
     }
   }
 }

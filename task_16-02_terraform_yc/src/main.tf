@@ -11,9 +11,9 @@ resource "yandex_vpc_subnet" "develop" {
 
 resource "yandex_vpc_subnet" "develop_b" {
   name           = "${var.vpc_name}-b"
-  zone           = "ru-central1-d"
+  zone           = var.vm_db_zone
   network_id     = yandex_vpc_network.develop.id
-  v4_cidr_blocks = ["10.0.2.0/24"]
+  v4_cidr_blocks = var.vm_db_subnet_cidr
 }
 
 data "yandex_compute_image" "ubuntu" {
@@ -40,7 +40,7 @@ resource "yandex_compute_instance" "platform" {
   }
   network_interface {
     subnet_id = yandex_vpc_subnet.develop.id
-    nat       = true
+    nat       = var.vms_resources["web"].nat
   }
   metadata = var.metadata
 }
@@ -48,7 +48,7 @@ resource "yandex_compute_instance" "platform" {
 resource "yandex_compute_instance" "platform_db" {
   name        = local.db_name
   platform_id = var.vm_db_platform_id
-  zone        = "ru-central1-d"
+  zone        = var.vm_db_zone
   resources {
     cores         = var.vms_resources["db"].cores
     memory        = var.vms_resources["db"].memory
@@ -66,7 +66,7 @@ resource "yandex_compute_instance" "platform_db" {
   }
   network_interface {
     subnet_id = yandex_vpc_subnet.develop_b.id
-    nat       = true
+    nat       = var.vms_resources["db"].nat
   }
   metadata = var.metadata
 }
