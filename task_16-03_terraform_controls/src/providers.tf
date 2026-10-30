@@ -11,5 +11,5 @@ provider "yandex" {
   cloud_id                 = var.cloud_id
   folder_id                = var.folder_id
   zone                     = var.default_zone
-  service_account_key_file = file("${path.module}/../creds/authorized_key.json")
+  service_account_key_file = pathexpand("~/.secrets/netology/yandex-cloud-editor.json")
 }

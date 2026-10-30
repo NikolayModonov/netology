@@ -11,9 +11,9 @@ resource "yandex_vpc_subnet" "develop" {
 
 resource "yandex_vpc_subnet" "develop_d" {
   name           = "${var.vpc_name}-d"
-  zone           = "ru-central1-d"
+  zone           = var.subnet_d_zone
   network_id     = yandex_vpc_network.develop.id
-  v4_cidr_blocks = ["10.0.2.0/24"]
+  v4_cidr_blocks = var.subnet_d_cidr
 }
 
 data "yandex_compute_image" "ubuntu" {
