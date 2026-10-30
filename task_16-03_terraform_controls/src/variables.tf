@@ -22,6 +22,16 @@ variable "default_cidr" {
   description = "https://cloud.yandex.ru/docs/vpc/operations/subnet-create"
 }
 
+variable "subnet_d_zone" {
+  type    = string
+  default = "ru-central1-d"
+}
+
+variable "subnet_d_cidr" {
+  type    = list(string)
+  default = ["10.0.2.0/24"]
+}
+
 variable "vpc_name" {
   type        = string
   default     = "develop"
@@ -60,6 +70,48 @@ variable "vm_preemptible" {
   default = true
 }
 
+variable "vm_nat" {
+  type    = bool
+  default = true
+}
+
+variable "vm_disk_size" {
+  type    = number
+  default = 5
+}
+
+###disk vars
+
+variable "disk_extra_size" {
+  type    = number
+  default = 1
+}
+
+variable "disk_extra_type" {
+  type    = string
+  default = "network-hdd"
+}
+
+variable "disk_extra_zone" {
+  type    = string
+  default = "ru-central1-d"
+}
+
+variable "vm_storage_zone" {
+  type    = string
+  default = "ru-central1-d"
+}
+
+variable "vm_storage_disk_size" {
+  type    = number
+  default = 5
+}
+
+variable "vm_storage_disk_type" {
+  type    = string
+  default = "network-hdd"
+}
+
 ###db vms
 
 variable "each_vm" {
@@ -68,22 +120,6 @@ variable "each_vm" {
     cpu         = number
     ram         = number
     disk_volume = number
-    zone        = string
+    subnet_name = string
   }))
-  default = [
-    {
-      vm_name     = "main"
-      cpu         = 2
-      ram         = 2
-      disk_volume = 5
-      zone        = "ru-central1-a"
-    },
-    {
-      vm_name     = "replica"
-      cpu         = 2
-      ram         = 4
-      disk_volume = 5
-      zone        = "ru-central1-d"
-    }
-  ]
 }

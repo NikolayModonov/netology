@@ -11,6 +11,7 @@ resource "yandex_compute_instance" "web" {
   boot_disk {
     initialize_params {
       image_id = data.yandex_compute_image.ubuntu.image_id
+      size     = var.vm_disk_size
     }
   }
   scheduling_policy {
@@ -18,7 +19,7 @@ resource "yandex_compute_instance" "web" {
   }
   network_interface {
     subnet_id          = yandex_vpc_subnet.develop.id
-    nat                = true
+    nat                = var.vm_nat
     security_group_ids = [yandex_vpc_security_group.example.id]
   }
   metadata = local.metadata

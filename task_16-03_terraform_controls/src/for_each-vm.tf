@@ -2,7 +2,7 @@ resource "yandex_compute_instance" "db" {
   for_each    = { for vm in var.each_vm : vm.vm_name => vm }
   name        = each.value.vm_name
   platform_id = var.vm_platform_id
-  zone        = each.value.zone
+  zone        = local.subnets[each.value.subnet_name] == yandex_vpc_subnet.develop.id ? "ru-central1-a" : "ru-central1-d"
   resources {
     cores         = each.value.cpu
     memory        = each.value.ram
@@ -18,8 +18,9 @@ resource "yandex_compute_instance" "db" {
     preemptible = var.vm_preemptible
   }
   network_interface {
-    subnet_id = each.value.zone == "ru-central1-a" ? yandex_vpc_subnet.develop.id : yandex_vpc_subnet.develop_d.id
-    nat       = true
+    subnet_id          = local.subnets[each.value.subnet_name]
+    nat                = var.vm_nat
+    security_group_ids = [yandex_vpc_security_group.example.id]
   }
   metadata = local.metadata
 }
