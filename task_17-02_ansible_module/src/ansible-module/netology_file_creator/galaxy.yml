@@ -1,0 +1,9 @@
+namespace: netology
+name: file_creator
+version: "1.0.0"
+readme: README.md
+authors:
+  - NikolayModonov
+description: Custom module to create files
+license:
+  - MIT
