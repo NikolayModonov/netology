@@ -1,0 +1,7 @@
+---
+- name: Test my_own_module
+  hosts: localhost
+  connection: local
+  gather_facts: false
+  roles:
+    - netology.file_creator.write_text

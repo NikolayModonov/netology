@@ -1,0 +1,5 @@
+---
+- name: Create file using custom module
+  netology.file_creator.my_own_module:
+    path: "{{ file_path }}"
+    content: "{{ file_content }}"
