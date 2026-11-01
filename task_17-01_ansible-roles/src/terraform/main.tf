@@ -8,10 +8,10 @@ terraform {
 }
 
 provider "yandex" {
-  cloud_id  = "b1gg429r8vsdd2339fed"
-  folder_id = "b1gsk9lfnqfglntfchri"
-  zone      = "ru-central1-a"
-  token     = "REMOVED_SECRET"
+  cloud_id                 = "b1gg429r8vsdd2339fed"
+  folder_id                = "b1gsk9lfnqfglntfchri"
+  zone                     = "ru-central1-a"
+  service_account_key_file = pathexpand("~/.secrets/netology/authorized_key.json")
 }
 
 resource "yandex_vpc_network" "net" {
