@@ -1,53 +1,18 @@
-# Домашнее задание к занятию "GitLab" - `Модонов Николай`
+# Домашнее задание к занятию 4 «Работа с roles»
 
-### Задание 1
-Что нужно сделать:
+## Ссылки на репозитории
 
-1. -
-2. -
-3. -
+1. **Репозиторий с плейбуком:** [ansible-playbook](https://github.com/NikolayModonov/ansible-playbook)
+2. **Репозиторий с ролью Vector:** [vector-role](https://github.com/NikolayModonov/vector-role)
+3. **Репозиторий с ролью Lighthouse:** [lighthouse-role](https://github.com/NikolayModonov/lighthouse-role)
 
-Требования
+## Что сделано
 
-1. -
-2. -
-3. -
-
-Решение:
-1. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-2. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-3. Code
-```
-code1
-code1
-code1
-
-```
-
----
-
-### Задание 2
-Что нужно сделать:
-
-1. -
-2. -
-3. -
-
-Требования
-
-1. -
-2. -
-3. -
-
-Решение:
-1. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-2. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-3. Code
-```
-code1
-code1
-code1
-
-```
-
----
+- Playbook разбит на три роли: clickhouse, vector, lighthouse.
+- Роли vector и lighthouse написаны с нуля, выложены в отдельные публичные репозитории.
+- В роли вынесены переменные (defaults/vars), конфигурационные файлы помещены в templates.
+- Написана документация к каждой роли (README.md).
+- Ролям проставлены теги v1.0.0.
+- В репозитории с плейбуком создан requirements.yml для скачивания ролей из GitHub.
+- Плейбук site.yml использует роли и разворачивает ClickHouse, Vector и LightHouse. 
+- Для обхода блокировки GitHub целевой нодой, скачивание LightHouse делегировано на контроллер (delegate_to: localhost).
