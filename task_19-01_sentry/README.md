@@ -25,6 +25,10 @@ Stack trace ошибки ZeroDivisionError:
 
 ![Resolved](img/19-01_03_resolved.png)
 
-Письмо с алертом в Mailpit:
+Уведомления в Mailpit:
 
 ![Alert Email](img/19-01_04_alert_email.png)
+
+Тело письма с алертом:
+
+![Alert Body](img/19-01_05_alert_body.png)
