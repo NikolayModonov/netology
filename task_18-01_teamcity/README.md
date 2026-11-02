@@ -1,53 +1,23 @@
-# Домашнее задание к занятию "GitLab" - `Модонов Николай`
+# Домашнее задание к занятию 5 «Непрерывная разработка и интеграция» (TeamCity)
 
-### Задание 1
-Что нужно сделать:
+## Что сделано
 
-1. -
-2. -
-3. -
+1. В Yandex Cloud развернуты две ВМ (Ubuntu 22.04).
+2. На первой ВМ развернут TeamCity Server, на второй — Nexus Repository (Maven).
+3. Настроен Maven-проект (лежит в папке `src/maven-project`), написана сборка `clean deploy`.
+4. В Nexus создан репозиторий `maven-releases` с политикой Release. Артефакт `my-app-1.0.jar` успешно собран и загружен в Nexus.
+5. Настроена синхронизация настроек TeamCity в отдельный репозиторий `teamcity-settings` в формате Kotlin DSL.
 
-Требования
+## Ссылки
 
-1. -
-2. -
-3. -
+Репозиторий с Kotlin-настройками TeamCity: [teamcity-settings](https://github.com/NikolayModonov/teamcity-settings)
 
-Решение:
-1. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-2. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-3. Code
-```
-code1
-code1
-code1
+## Скриншоты
 
-```
+![TeamCity start](img/18-01_01_teamcity_start.png)
 
----
+![Build success](img/18-01_02_build_success.png)
 
-### Задание 2
-Что нужно сделать:
+![Nexus artifact](img/18-01_03_nexus_artifact.png)
 
-1. -
-2. -
-3. -
-
-Требования
-
-1. -
-2. -
-3. -
-
-Решение:
-1. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-2. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-3. Code
-```
-code1
-code1
-code1
-
-```
-
----
+![TeamCity Git](img/18-01_04_teamcity_git.png)
