@@ -5,7 +5,7 @@
 В Yandex Cloud развернута ВМ (Ubuntu 22.04). С помощью `docker-compose` поднят стек: `grafana`, `prometheus` и `node-exporter`.
 В Grafana добавлен источник данных Prometheus (URL: `http://prometheus:9090`). Подключение успешно проверено.
 
-![Datasource](img/19-03_01_datasource.png)
+![Datasource](img/19-03_01_datasource.jpg)
 
 ## Задание 2. Создание Dashboard
 
@@ -15,13 +15,13 @@
 3. RAM Available %: `node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes * 100`
 4. Disk Free Space: `node_filesystem_avail_bytes{mountpoint="/"}`
 
-![Dashboard](img/19-03_02_dashboard.png)
+![Dashboard](img/19-03_02_dashboard.jpg)
 
 ## Задание 3. Настройка алертинга
 
 В Grafana настроена точка контакта (Contact point) типа `Email` для отправки уведомлений. Проверка работы канала связи пройдена успешно.
 
-![Alert](img/19-03_03_alert.png)
+![Alert](img/19-03_03_alert.jpg)
 
 ## Задание 4. Экспорт Dashboard
 
