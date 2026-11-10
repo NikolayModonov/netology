@@ -17,4 +17,4 @@
 
 Скриншот доступа к приложению через браузер:
 
-![Service NodePort](img/21-02_02_service-nodeport.jpg)
+![Service NodePort](img\21-02_02_service-nodeport.jpg) 
