@@ -7,8 +7,8 @@
 
 Скриншот подключения к поду hello-world на порту 8080:
 
-![Hello World](img/21-01_01_hello-world.png)
+![Hello World](img/21-01_01_hello-world.jpg)
 
 Скриншот подключения к сервису netology-svc на порту 8081:
 
-![Netology SVC](img/21-01_02_netology-svc.png)
+![Netology SVC](img/21-01_02_netology-svc.jpg)
