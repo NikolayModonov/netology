@@ -1,53 +1,14 @@
-# Домашнее задание к занятию "GitLab" - `Модонов Николай`
+# Домашнее задание к занятию «Базовые объекты K8S»
 
-### Задание 1
-Что нужно сделать:
+## Задание 1. Создание Pod и Service
 
-1. -
-2. -
-3. -
+В кластере MicroK8S созданы два Pod'а (hello-world и netology-web), а также сервис netology-svc.
+Для проверки работы приложений использован port-forward.
 
-Требования
+Скриншот подключения к поду hello-world на порту 8080:
 
-1. -
-2. -
-3. -
+![Hello World](img/21-01_01_hello-world.png)
 
-Решение:
-1. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-2. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-3. Code
-```
-code1
-code1
-code1
+Скриншот подключения к сервису netology-svc на порту 8081:
 
-```
-
----
-
-### Задание 2
-Что нужно сделать:
-
-1. -
-2. -
-3. -
-
-Требования
-
-1. -
-2. -
-3. -
-
-Решение:
-1. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-2. ![Скриншот ](https://github.com/NikolayModonov/screen.jpg)
-3. Code
-```
-code1
-code1
-code1
-
-```
-
----
+![Netology SVC](img/21-01_02_netology-svc.png)
