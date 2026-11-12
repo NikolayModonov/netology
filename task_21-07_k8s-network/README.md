@@ -216,22 +216,8 @@ networkpolicy.networking.k8s.io/allow-backend-to-cache created
 
 Разрешённый трафик: frontend -> backend и backend -> cache, обе команды вернули ответ multitool.
 
-```
-ubuntu@fhm9jn8gcdb5fvmirc2g:~$ sudo microk8s kubectl exec -n app deploy/frontend -- curl -s -m 5 http://backend.app.svc.cluster.local
-WBITT Network MultiTool (with NGINX) - backend-7586d68cfc-xlfhp - 10.1.177.5 - HTTP: 80 , HTTPS: 443 . (Formerly praqma/network-multitool)
-ubuntu@fhm9jn8gcdb5fvmirc2g:~$ sudo microk8s kubectl exec -n app deploy/backend -- curl -s -m 5 http://cache.app.svc.cluster.local
-WBITT Network MultiTool (with NGINX) - cache-b6f99688c-mxtns - 10.1.177.6 - HTTP: 80 , HTTPS: 443 . (Formerly praqma/network-multitool)
-```
-
 ![21-07_allow](img/21-07_allow.jpg)
 
 Запрещённый трафик: frontend -> cache и cache -> backend, обе команды завершились с exit code 28 (таймаут) — трафик заблокирован политиками.
-
-```
-ubuntu@fhm9jn8gcdb5fvmirc2g:~$ sudo microk8s kubectl exec -n app deploy/frontend -- curl -s -m 5 http://cache.app.svc.cluster.local
-command terminated with exit code 28
-ubuntu@fhm9jn8gcdb5fvmirc2g:~$ sudo microk8s kubectl exec -n app deploy/cache -- curl -s -m 5 http://backend.app.svc.cluster.local
-command terminated with exit code 28
-```
 
 ![21-07_deny](img/21-07_deny.jpg)
