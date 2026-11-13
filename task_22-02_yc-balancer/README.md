@@ -11,8 +11,8 @@
 
 Страница, отдаваемая через балансировщик (IP: 46.243.210.230):
 
-![Balancer Working](img/22-02_01_balancer_working.png)
+![Balancer Working](img/22-02_01_balancer_working.jpg)
 
 Проверка отказоустойчивости: после удаления одной ВМ из группы балансировщик продолжает отдавать страницу:
 
-![Balancer After Failure](img/22-02_02_balancer_after_failure.png)
+![Balancer After Failure](img/22-02_02_balancer_after_failure.jpg)
