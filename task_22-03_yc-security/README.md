@@ -12,12 +12,12 @@
 
 Созданный KMS-ключ:
 
-![KMS Key](img/22-03_01_kms_key.png)
+![KMS Key](img/22-03_01_kms_key.jpg)
 
 Бакет с включенным шифрованием:
 
-![Bucket Encryption](img/22-03_02_bucket_encryption.png)
+![Bucket Encryption](img/22-03_02_bucket_encryption.jpg)
 
 Правила группы безопасности:
 
-![Security Group](img/22-03_03_security_group.png)
+![Security Group](img/22-03_03_security_group.jpg)
