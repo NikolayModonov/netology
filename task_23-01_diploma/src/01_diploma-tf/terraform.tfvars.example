@@ -1,0 +1,4 @@
+cloud_id            = "b1gg429r8vsdd2339fed"
+folder_id           = "b1gsk9lfnqfglntfchri"
+sa_key_file         = "~/.secrets/diploma/key.json"
+ssh_public_key_path = "~/.ssh/terraform-yc.pub"
