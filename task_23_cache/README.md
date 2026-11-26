@@ -16,7 +16,7 @@
 - Задание диплома (критерии - ЧТО делать):
   https://github.com/netology-code/devops-diplom-yandexcloud
 - Требование задания: все файлы, скриншоты, README - в одном git-репозитории.
-- Облако: Yandex Cloud
+- Облако: Yandex Cloud (ЯО)
 - Kubernetes: самостоятельный, 3 ВМ, развёртывание Kubespray через Ansible
 - CI/CD: GitHub Actions
 - Мониторинг: kube-prometheus-stack (helm)
@@ -27,6 +27,13 @@
   - Символ подчёркивания "_" разрешён.
   - Внутри текста файла запрещён символ обратной кавычки; тройная обратная
     кавычка записывается как +++
+- Среда выполнения 
+  -  Рабочая машина: Windows-десктоп. Используется: git, Terraform, Yandex Cloud CLI. Ничего больше локально не ставим. Остальные машины - ВМ в ЯО
+  -  Ansible (Kubespray, этап 2) запускается с управляющей ВМ в ЯО: mgmt-ВМ 2 CPU / 2 GB, Ubuntu 22.04, добавляется в vms.tf этапа 1, ставится через cloud-init (python3, pip, ansible, git).
+  -  На mgmt-ВМ также ставятся: kubectl, helm, jq - они нужны для проверки кластера и деплоя (этапы 2, 4).
+  -  Docker-сборка приложения (этап 3) выполняется в GitHub Actions, локальный Docker не используется.
+  -  Доступ к ВМ с десктопа - ssh (терминал есть всегда).
+  -  Правило: всё, что можно выполнить в облаке или в CI, выполняется там, а не локально.
 
 ## 2. Репозитории (ко всем этапам)
 
@@ -42,13 +49,22 @@
 
 ## 3. Зафиксированные решения (ко всем этапам)
 
-- ВМ: standard-v2, 2 CPU / 4 GB RAM, Ubuntu 22.04, 3 шт (ru-central1-a/b/d)
+- ВМ: standard-v2, 4 CPU / 8 GB RAM, core_fraction 20, диск network-ssd 50
+  GB, Ubuntu 22.04, 3 шт (ru-central1-a/b/d)
 - K8s: 1 control-plane + 2 worker, CNI calico (Kubespray stacked)
-- Backend TF state: S3-бакет ЯО + YDB (DynamoDB-совместимый) для блокировки
+- Ansible (Kubespray) запускается с node-a, отдельная mgmt-ВМ не создаётся
+- Backend TF state: S3-бакет nikolay-modonov-diploma-tf-state, блокировка
+  use_lockfile = true, у бакета включено версионирование. YDB не
+  используется.
+- SA diploma-sa и state-бакет созданы вручную один раз, вне Terraform.
+  terraform destroy их не трогает.
+- Роль container-registry.admin у SA не нужна (registry - DockerHub).
+- Провайдер yandex в main.tf - пустой блок, читает переменные окружения
+  YC_CLOUD_ID, YC_FOLDER_ID, YC_SERVICE_ACCOUNT_KEY_FILE, YC_ZONE.
 - Registry: НАЧИНАЕМ С DockerHub (публичный образ, imagePullSecret не нужен).
   ВНИМАНИЕ: задание требует приватный Yandex Container Registry. Если
   преподаватель придирётся - переключаемся на YCR на этапе 3.
-- CI/CD-terraform (требование задания об автоприменении TF) закрывается
+- CI/CD-terraform (требование задания об автоприменении TF) закрывается 
   GitHub Actions workflow в diploma-tf: plan на PR, apply при merge в main.
   Отдельный Atlantis не нужен.
 
@@ -57,18 +73,22 @@
 - TF outputs (IP ВМ, id подсетей) -> ansible inventory этапа 2
 - kubeconfig этапа 2 -> GitHub Secrets -> этапы 4 и 5
 - имя образа этапа 3 -> Deployment этапа 4 и workflow этапа 5
-- SA JSON key этапа 1 -> GitHub Secrets -> CI/CD-terraform
+- SA JSON-ключ (создан вручную, вне этапов) -> GitHub Secrets -> CI/CD-terraform
 - DockerHub/YCR creds -> GitHub Secrets -> workflow этапа 5
 
 ## 5. Места хранения секретов (ко всем этапам, самих секретов здесь НЕТ)
 
-- terraform.tfvars (cloud_id, folder_id, sa_key_file) - локально в
-  src/01_diploma-tf/, в .gitignore, НЕ в репозитории.
-- Шаблон без секретов: src/01_diploma-tf/terraform.tfvars.example
-- SSH-ключ для ВМ: локально по пути из переменной ssh_public_key_path
-  (по умолчанию ~/.ssh/terraform-yc.pub)
-- SA JSON-ключ для Terraform/CI: локально + GitHub Secrets репозитория
-  diploma-tf (имена секретов зафиксировать при создании)
+- ~/.secrets/netology/diploma/key.json - SA JSON-ключ diploma-sa
+- ~/.secrets/netology/diploma/env.sh - для Linux (node-a): экспортирует
+  YC_CLOUD_ID, YC_FOLDER_ID, YC_SERVICE_ACCOUNT_KEY_FILE, YC_ZONE
+- ~/.secrets/netology/diploma/env.ps1 - те же переменные для PowerShell
+  на десктопе
+- ~/.ssh/terraform-yc.pub - ssh-ключ для ВМ, путь в переменной
+  ssh_public_key_path
+- terraform.tfvars НЕ используется, terraform.tfvars.example удалён:
+  переменных под него в коде не осталось
+- SA JSON-ключ для CI/CD-terraform: GitHub Secrets репозитория diploma-tf
+  (имена секретов зафиксировать при создании)
 - DockerHub creds: GitHub Secrets репозитория diploma-app
   (DOCKERHUB_USERNAME, DOCKERHUB_TOKEN)
 - kubeconfig: GitHub Secrets репозиториев diploma-k8s и diploma-app
