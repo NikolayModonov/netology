@@ -40,6 +40,8 @@
   - Правило: всё, что можно выполнить в облаке или в CI, выполняется там,
     а не локально.
 
+
+
 ## 2. Репозитории (ко всем этапам)
 
 - Несколько отдельных репозиториев
@@ -149,6 +151,32 @@ src/01_diploma-tf/
 - outputs.tf - в работе
 - bootstrap.sh / bootstrap.ps1 - удалить (SA и бакет уже созданы вручную)
 - Скриншоты - не сняты
+
+Дополнения и изменения этапа (зафиксировано по ходу выполнения):
+
+- Зона ru-central1-b недоступна для создания ВМ в аккаунте. node-2
+  перенесена в ru-central1-e, подсеть 2 - тоже. Итоговые зоны нод:
+  node-1 - ru-central1-a, node-2 - ru-central1-e, node-3 - ru-central1-d
+- Переименование: ноды node-1/node-2/node-3 (были node-a/b/d),
+  подсети diploma-subnet-1/2/3 (были a/b/d), id ресурсов в TF - s1/s2/s3
+- У state-бакета включено версионирование:
+  yc storage bucket update --name nikolay-modonov-diploma-tf-state --versioning versioning-enabled
+- У diploma-sa выданы роли на фолдере: editor, storage.admin, vpc.admin,
+  compute.admin, load-balancer.admin, kms.keys.encrypterDecrypter,
+  iam.serviceAccounts.admin (container-registry.admin не выдаётся - registry DockerHub)
+- Создан статический access-key diploma-sa для state-бакета
+  (AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY, лежат в env-файлах секретов)
+- Backend s3 в main.tf: endpoints { s3 = https://storage.yandexcloud.net },
+  use_lockfile = true, skip_credentials_validation,
+  skip_region_validation, skip_metadata_api_check,
+  skip_requesting_account_id, skip_s3_checksum
+- Запуск PS-скриптов в системе запрещён политикой: env-файл подгружается
+  командой Invoke-Expression (Get-Content ~/.secrets/netology/diploma/env.ps1 -Raw),
+ terraform apply запускать с -auto-approve
+- terraform providers lock не проходит: registry.terraform.io ограничен.
+  На этапе 4 в CI использовать зеркало terraform-mirror.yandexcloud.net
+- Скриншот 23-01_yc_resources: зоны в выводе будут a/e/d
+
 
 ## 7. Этап 2. Kubernetes-кластер (репо diploma-ansible)
 
