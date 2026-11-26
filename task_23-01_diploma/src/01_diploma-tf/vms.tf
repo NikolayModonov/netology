@@ -1,13 +1,13 @@
 locals {
-  k8s_zones = {
-    node-a = { zone = "ru-central1-a", subnet_id = yandex_vpc_subnet.a.id }
-    node-b = { zone = "ru-central1-b", subnet_id = yandex_vpc_subnet.b.id }
-    node-d = { zone = "ru-central1-d", subnet_id = yandex_vpc_subnet.d.id }
+  k8s_nodes = {
+    node-1 = { zone = "ru-central1-a", subnet_id = yandex_vpc_subnet.s1.id }
+    node-2 = { zone = "ru-central1-e", subnet_id = yandex_vpc_subnet.s2.id }
+    node-3 = { zone = "ru-central1-d", subnet_id = yandex_vpc_subnet.s3.id }
   }
 }
 
 resource "yandex_compute_instance" "k8s_node" {
-  for_each = local.k8s_zones
+  for_each = local.k8s_nodes
 
   name        = each.key
   platform_id = "standard-v2"

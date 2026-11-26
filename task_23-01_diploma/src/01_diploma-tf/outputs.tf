@@ -1,22 +1,25 @@
-output "k8s_nodes" {
+output "node_public_ips" {
   value = {
-    for k, v in yandex_compute_instance.k8s_node : k => {
-      name        = v.name
-      zone        = v.zone
-      external_ip = v.network_interface[0].nat_ip_address
-      internal_ip = v.network_interface[0].ip_address
-    }
+    for name, vm in yandex_compute_instance.k8s_node :
+    name => vm.network_interface[0].nat_ip_address
   }
 }
 
-output "vpc_network_id" {
+output "node_private_ips" {
+  value = {
+    for name, vm in yandex_compute_instance.k8s_node :
+    name => vm.network_interface[0].ip_address
+  }
+}
+
+output "network_id" {
   value = yandex_vpc_network.diploma.id
 }
 
 output "subnet_ids" {
   value = {
-    a = yandex_vpc_subnet.a.id
-    b = yandex_vpc_subnet.b.id
-    d = yandex_vpc_subnet.d.id
+    s1 = yandex_vpc_subnet.s1.id
+    s2 = yandex_vpc_subnet.s2.id
+    s3 = yandex_vpc_subnet.s3.id
   }
 }

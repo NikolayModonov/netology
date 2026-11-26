@@ -27,21 +27,27 @@
   - Символ подчёркивания "_" разрешён.
   - Внутри текста файла запрещён символ обратной кавычки; тройная обратная
     кавычка записывается как +++
-- Среда выполнения 
-  -  Рабочая машина: Windows-десктоп. Используется: git, Terraform, Yandex Cloud CLI. Ничего больше локально не ставим. Остальные машины - ВМ в ЯО
-  -  Ansible (Kubespray, этап 2) запускается с управляющей ВМ в ЯО: mgmt-ВМ 2 CPU / 2 GB, Ubuntu 22.04, добавляется в vms.tf этапа 1, ставится через cloud-init (python3, pip, ansible, git).
-  -  На mgmt-ВМ также ставятся: kubectl, helm, jq - они нужны для проверки кластера и деплоя (этапы 2, 4).
-  -  Docker-сборка приложения (этап 3) выполняется в GitHub Actions, локальный Docker не используется.
-  -  Доступ к ВМ с десктопа - ssh (терминал есть всегда).
-  -  Правило: всё, что можно выполнить в облаке или в CI, выполняется там, а не локально.
+- Среда выполнения
+  - Рабочая машина: Windows-десктоп. Используется: git, Terraform,
+    Yandex Cloud CLI. Ничего больше локально не ставим.
+    Остальные машины - ВМ в ЯО
+  - Ansible (Kubespray, этап 2) запускается с node-a (первая ВМ этапа 1).
+    kubectl, helm, jq ставятся там же - нужны для проверки кластера и
+    деплоя (этапы 2, 4).
+  - Docker-сборка приложения (этап 3) выполняется в GitHub Actions,
+    локальный Docker не используется.
+  - Доступ к ВМ с десктопа - ssh (терминал есть всегда).
+  - Правило: всё, что можно выполнить в облаке или в CI, выполняется там,
+    а не локально.
 
 ## 2. Репозитории (ко всем этапам)
 
-- diploma-tf - Terraform: VPC, подсети, ВМ, backend state
-- diploma-ansible - Kubespray, inventory
-- diploma-app - nginx конфиг, Dockerfile, статика, CI/CD workflow
-- diploma-k8s - helm-чарты и манифесты (monitoring, app, ingress)
-- diploma-report - главный README отчёта со ссылками на репозитории выше
+- Несколько отдельных репозиториев
+  - diploma-tf - Terraform: VPC, подсети, ВМ, backend state
+  - diploma-ansible - Kubespray, inventory
+  - diploma-app - nginx конфиг, Dockerfile, статика, CI/CD workflow
+  - diploma-k8s - helm-чарты и манифесты (monitoring, app, ingress)
+  - diploma-report - главный README отчёта со ссылками на репозитории выше
 - Репозиторий с финальной версией диплома, который сдаётся: https://github.com/NikolayModonov/netology/tree/main/task_23-01_diploma
 - Репозиторий наполняется по мере готовности каждого этапа.
 - Этот файл (https://github.com/NikolayModonov/netology/tree/main/task_23_cache/README.md) - контекст проекта: техническая информация, план и текущий статус. Текущий этап смотреть в статусе соответствующего этапа, начинать работу только с него.
@@ -58,6 +64,13 @@
   используется.
 - SA diploma-sa и state-бакет созданы вручную один раз, вне Terraform.
   terraform destroy их не трогает.
+- diploma-sa имеет роли на фолдере: editor, storage.admin, vpc.admin,
+  compute.admin, load-balancer.admin, kms.keys.encrypterDecrypter,
+  iam.serviceAccounts.admin. 
+  Проверено list-access-bindings, роли выданы. 
+  Проверка: yc resource-manager folder list-access-bindings <folder_id>. 
+  Недостающие можно выдать через
+  yc resource-manager folder add-access-binding (см. команду выше).
 - Роль container-registry.admin у SA не нужна (registry - DockerHub).
 - Провайдер yandex в main.tf - пустой блок, читает переменные окружения
   YC_CLOUD_ID, YC_FOLDER_ID, YC_SERVICE_ACCOUNT_KEY_FILE, YC_ZONE.
@@ -67,9 +80,7 @@
 - CI/CD-terraform (требование задания об автоприменении TF) закрывается 
   GitHub Actions workflow в diploma-tf: plan на PR, apply при merge в main.
   Отдельный Atlantis не нужен.
-
-## 4. Поток артефактов (ко всем этапам)
-
+- Код и конфигурации отдельных репо и создаваемых
 - TF outputs (IP ВМ, id подсетей) -> ansible inventory этапа 2
 - kubeconfig этапа 2 -> GitHub Secrets -> этапы 4 и 5
 - имя образа этапа 3 -> Deployment этапа 4 и workflow этапа 5
@@ -96,20 +107,21 @@
 
 ---
 
-## 6. Этап 1. Terraform-инфраструктура (репо diploma-tf)
+## 6. Этап 1. Terraform-инфраструктура (репо diploma-tf, директория
+src/01_diploma-tf репо сдачи)
 
 Требования:
-- backend "s3": бакет ЯО + YDB-таблица для блокировки
-- apply с нуля поднимает VPC + ВМ + state-bucket; destroy сносит всё
-  без ручных шагов
+- backend "s3": бакет ЯО, блокировка use_lockfile = true, у бакета
+  включено версионирование (YDB не используется)
+- apply с нуля поднимает VPC + ВМ; destroy сносит всё без ручных шагов
 
 Решения этапа (используются только здесь):
-- ВМ 2 CPU / 4 GB RAM (может быть увеличено на этапе 2 при тормозах
-  Kubespray), core_fraction 20
-- SA + бакет + YDB-таблица создаёт bootstrap-скрипт ОДИН раз вручную
-  (state-бэкенд живёт между destroy/apply, его destroy не трогает);
+- ВМ 4 CPU / 8 GB RAM, core_fraction 20, диск network-ssd 50 GB
+- SA (diploma-sa) и state-бакет (nikolay-modonov-diploma-tf-state)
+  созданы вручную ОДИН раз, вне Terraform; destroy их не трогает.
   Terraform управляет только VPC + ВМ
-- SA для CI/CD (этап 4) описывается ресурсами Terraform в sa.tf
+- Провайдер yandex - пустой блок, читает переменные окружения
+  (YC_CLOUD_ID, YC_FOLDER_ID, YC_SERVICE_ACCOUNT_KEY_FILE, YC_ZONE)
 
 Скриншоты этапа (в img/, имена 23-01_*, ссылка в README этапа):
 - 23-01_tf_init - terraform init, backend S3 инициализирован
@@ -122,18 +134,20 @@
 Структура кода этапа:
 +++text
 src/01_diploma-tf/
-  bootstrap.sh / bootstrap.ps1  - SA + ключ + state-бакет + YDB-таблица
-  main.tf      - provider, backend s3 (bucket: nikolay-modonov-diploma-tf-state)
+  main.tf      - провайдер (пустой блок), backend s3
+                 (bucket: nikolay-modonov-diploma-tf-state,
+                 use_lockfile = true), data-источник ubuntu-2204-lts
   network.tf   - network diploma-net + подсети a/b/d (10.10.1-3.0/24)
   vms.tf       - 3 ВМ k8s_node (node-a/node-b/node-d) по зонам
-  variables.tf - cloud_id, folder_id, default_zone, sa_key_file, ssh_public_key_path
+  variables.tf - ssh_public_key_path
   outputs.tf   - публичные/приватные IP ВМ, id сети/подсетей
 +++
 
 Статус этапа: В РАБОТЕ
-- main.tf, network.tf, variables.tf, vms.tf - готово
+- network.tf, vms.tf - готово
+- main.tf, variables.tf - в работе (перевод на env-переменные)
 - outputs.tf - в работе
-- bootstrap.sh / bootstrap.ps1 - в работе
+- bootstrap.sh / bootstrap.ps1 - удалить (SA и бакет уже созданы вручную)
 - Скриншоты - не сняты
 
 ## 7. Этап 2. Kubernetes-кластер (репо diploma-ansible)
@@ -150,8 +164,13 @@ src/01_diploma-tf/
 
 - index.html со статикой, nginx.conf (root /usr/share/nginx/html, listen 80)
 - Dockerfile: FROM nginx:stable-alpine + COPY nginx.conf и index.html
-- Локально: docker build + docker push в DockerHub: <user>/diploma-app:latest
-- Критерий: docker run -p 8080:80 <image> отдаёт страницу
+- Первая сборка и пуш образа - одноразовый запуск GitHub Actions
+  workflow в diploma-app (workflow_dispatch): <user>/diploma-app:latest
+- Критерий: образ в DockerHub; docker run -p 8080:80 <image> на node-a
+  отдаёт страницу
+- ВНИМАНИЕ: после Kubespray на нодах стоит containerd, команды docker
+  там может не быть. Если docker на node-a отсутствует - критерий
+  проверять через kubectl run + port-forward или поставить nerdctl
 - Статус: НЕ НАЧАТ
 
 ## 9. Этап 4. Мониторинг + деплой (репо diploma-k8s)

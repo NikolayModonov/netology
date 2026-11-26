@@ -1,21 +1,3 @@
-variable "cloud_id" {
-  type = string
-}
-
-variable "folder_id" {
-  type = string
-}
-
-variable "default_zone" {
-  type    = string
-  default = "ru-central1-a"
-}
-
-variable "sa_key_file" {
-  type      = string
-  sensitive = true
-}
-
 variable "ssh_public_key_path" {
   type    = string
   default = "~/.ssh/terraform-yc.pub"
